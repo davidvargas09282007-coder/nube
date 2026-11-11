@@ -1,0 +1,53 @@
+[Unit]
+Description=Jarvis Server (FastAPI + WebSocket)
+Documentation=https://github.com/tu-usuario/jarvis
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=jarvis
+Group=jarvis
+WorkingDirectory=/opt/jarvis
+EnvironmentFile=/etc/jarvis/jarvis.env
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=HF_HOME=/var/lib/jarvis/hf
+Environment=XDG_CACHE_HOME=/var/lib/jarvis/cache
+
+# El puerto 8080 queda detras de nginx/Caddy, que termina TLS.
+ExecStart=/opt/jarvis/.venv/bin/uvicorn jarvis_server.app:app \
+    --host 0.0.0.0 \
+    --port 8080 \
+    --proxy-headers \
+    --forwarded-allow-ips 127.0.0.1 \
+    --no-server-header \
+    --timeout-keep-alive 65 \
+    --timeout-graceful-shutdown 20 \
+    --ws-ping-interval 30 \
+    --ws-ping-timeout 60 \
+    --log-level info
+
+Restart=always
+RestartSec=3
+TimeoutStopSec=30
+KillSignal=SIGINT
+LimitNOFILE=65535
+
+# Endurecimiento: el proceso solo escribe en su directorio de datos.
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+ReadWritePaths=/var/lib/jarvis
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target

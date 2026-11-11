@@ -1,0 +1,50 @@
+# ============================================================================
+# Despliegue en Render (https://render.com) con Blueprint.
+#
+#   1. Sube el repositorio a GitHub.
+#   2. Copia este archivo a la RAÍZ del repositorio (Render solo lee render.yaml allí).
+#   3. Render -> New -> Blueprint -> selecciona el repo y aprueba el servicio.
+#
+# Las rutas de build son relativas a la raíz del repositorio.
+# El disco persistente requiere plan de pago; en el plan free no hay /data y el
+# servicio se suspende por inactividad (no sirve para "mantenerlo siempre vivo").
+# ============================================================================
+services:
+  - type: web
+    name: jarvis-server
+    runtime: docker
+    dockerfilePath: ./nube/Dockerfile
+    dockerContext: ./nube
+    plan: starter
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    disk:
+      name: jarvis-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: JARVIS_AUTH_TOKEN
+        generateValue: true
+      - key: JARVIS_HOST
+        value: 0.0.0.0
+      - key: JARVIS_DRY_RUN
+        value: "true"
+      - key: JARVIS_REQUIRE_CONFIRMATION
+        value: "true"
+      - key: JARVIS_ALLOWED_ROOTS
+        value: /data
+      - key: JARVIS_NOTES_DIR
+        value: /data/Jarvis
+      - key: JARVIS_STT_BACKEND
+        value: none
+      - key: JARVIS_WAKE_WORD_ENABLED
+        value: "false"
+      - key: JARVIS_WOL_BROADCAST
+        value: 255.255.255.255
+      - key: HF_HOME
+        value: /data/hf
+      - key: XDG_CACHE_HOME
+        value: /data/cache
+      - key: JARVIS_LOG_LEVEL
+        value: INFO

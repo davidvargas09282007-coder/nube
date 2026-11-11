@@ -1,0 +1,58 @@
+# ============================================================================
+# Despliegue en Fly.io (https://fly.io)
+#
+#   fly launch --no-deploy          # ajusta el nombre de la app
+#   fly volumes create jarvis_data --size 1 --region mad
+#   fly secrets set JARVIS_AUTH_TOKEN="$(python -c 'import secrets;print(secrets.token_urlsafe(32))')"
+#   fly deploy
+#
+# `min_machines_running = 1` + `auto_stop_machines = false` mantienen el
+# servidor siempre activo (consume cuota; ajusta a tu plan).
+# ============================================================================
+app = "jarvis-server"
+primary_region = "mad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  JARVIS_HOST = "0.0.0.0"
+  JARVIS_PORT = "8080"
+  JARVIS_DRY_RUN = "true"
+  JARVIS_REQUIRE_CONFIRMATION = "true"
+  JARVIS_ALLOWED_ROOTS = "/data"
+  JARVIS_NOTES_DIR = "/data/Jarvis"
+  JARVIS_STT_BACKEND = "none"
+  JARVIS_WAKE_WORD_ENABLED = "false"
+  JARVIS_LOG_LEVEL = "INFO"
+  HF_HOME = "/data/hf"
+  XDG_CACHE_HOME = "/data/cache"
+
+[[mounts]]
+  source = "jarvis_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "connections"
+    soft_limit = 150
+    hard_limit = 200
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
+
+[checks]
+  [checks.health]
+    type = "http"
+    port = 8080
+    path = "/health"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "30s"

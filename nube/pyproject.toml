@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jarvis-server-cloud"
+version = "0.1.0"
+description = "Servidor Jarvis para despliegue en la nube: WebSocket, automatizacion y Wake-on-LAN"
+requires-python = ">=3.11"
+license = "MIT"
+# Las dependencias reales se instalan desde requirements.txt / requirements-voice.txt
+# para que el Dockerfile controle exactamente que entra en la imagen.
+dependencies = []
+
+[project.scripts]
+jarvis-server = "jarvis_server.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["jarvis_server*"]

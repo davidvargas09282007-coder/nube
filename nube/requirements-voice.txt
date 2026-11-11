@@ -1,0 +1,19 @@
+# ============================================================================
+# Voz local opcional (STT + wake word) para la nube.
+#
+# Solo lo necesitas si quieres transcribir audio EN EL SERVIDOR. La app movil
+# puede enviar texto y usar el microfono del telefono sin esto.
+#
+#   docker build --build-arg INSTALL_VOICE=true -t jarvis-server .
+#   pip install -r requirements-voice.txt
+#
+# Aviso: suma ~600 MB de imagen y el modelo de Whisper se descarga aparte
+# (~75 MB `tiny`, ~500 MB `small`). En un contenedor con poca RAM/CPU la
+# latencia por comando puede ser de varios segundos.
+# ============================================================================
+-r requirements.txt
+
+faster-whisper==1.2.1
+openwakeword==0.6.0
+numpy==2.5.4
+onnxruntime==1.31.1

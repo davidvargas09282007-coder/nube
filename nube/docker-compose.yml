@@ -1,0 +1,66 @@
+# ============================================================================
+# Compose de produccion: Jarvis + Caddy (TLS automatico con Let's Encrypt).
+#
+#   1. cp .env.example .env   y rellena JARVIS_AUTH_TOKEN y JARVIS_DOMAIN
+#   2. docker compose up -d --build
+#   3. healthcheck: docker compose ps
+#
+# Con JARVIS_DOMAIN=localhost Caddy usa su CA interna (certificado no
+# confiable para el movil). En un VPS apunta un dominio real a la IP.
+# ============================================================================
+name: jarvis
+
+services:
+  jarvis:
+    build:
+      context: .
+      args:
+        INSTALL_VOICE: "${INSTALL_VOICE:-false}"
+    image: jarvis-server:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      JARVIS_HOST: 0.0.0.0
+      JARVIS_PORT: "8080"
+    volumes:
+      - jarvis-data:/data
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "python", "scripts/healthcheck.py"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      jarvis:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      JARVIS_DOMAIN: "${JARVIS_DOMAIN:-localhost}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  jarvis-data:
+  caddy-data:
+  caddy-config:

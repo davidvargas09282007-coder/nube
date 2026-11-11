@@ -1,0 +1,16 @@
+# ============================================================================
+# Dependencias de produccion del servidor Jarvis (nucleo).
+# Versiones fijadas = builds reproducibles. Actualiza con:
+#   pip install -U fastapi uvicorn pydantic pydantic-settings psutil pillow
+#   pip freeze | Select-String '^(fastapi|uvicorn|pydantic|pydantic-settings|psutil|pillow)='
+# ============================================================================
+fastapi==0.162.3
+uvicorn[standard]==0.54.0
+pydantic==2.14.3
+pydantic-settings==2.16.2
+
+# Automatizacion del sistema (metricas, procesos, capturas de pantalla).
+psutil==7.2.2
+pillow==13.0.0
+
+# uvicorn[standard] ya incluye websockets, httptools, uvloop y watchfiles.
